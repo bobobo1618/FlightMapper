@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Worldwide Flight Map</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <script type="text/javascript" src="/mapStyle.js"></script>
+    <script type="text/javascript" src="/mapLogic.js"></script>
+  </head>
+  <body>
+    <div id="floating-panel">
+      <input type="checkbox" class="layer-toggle" onchange="updateLayers()" value="A" checked>ADS-B</input>
+      <input type="checkbox" class="layer-toggle" onchange="updateLayers()" value="M">MLAT</input>
+      <input type="checkbox" class="layer-toggle" onchange="updateLayers()" value="Z">Radar</input>
+      <input type="checkbox" class="layer-toggle" onchange="updateLayers()" value="O">Oceanic</input>
+      <input type="checkbox" class="layer-toggle" onchange="updateLayers()" value="P">Estimated</input>
+    </div>
+    <div id="map"></div>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?callback=initMap"></script>
+  </body>
+</html>
