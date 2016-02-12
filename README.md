@@ -3,6 +3,8 @@ Maps Flightaware or SBS feeds.
 
 Uses https://github.com/lucasb-eyer/heatmap for rendering heatmaps.
 
+Written for the data coverage view on [the FlightAware coverage map](https://flightaware.com/adsb/coverage).
+
 ## Building
 
 `go build .`
