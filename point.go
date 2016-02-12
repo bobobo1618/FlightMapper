@@ -20,7 +20,7 @@ func project(lat, lon, tile_size float64) (x, y float64) {
 }
 
 // Convert 0..1 coordinates to 0..worldSize co-ordinates at the given level.
-func tileToWorld(inp Point, level uint, tileSize float64) (p Point){
+func tileToWorld(inp Point, level uint, tileSize float64) (p Point) {
 	factor := tileSize / math.Pow(2, float64(level))
 	return Point{inp.X * factor, inp.Y * factor}
 }

@@ -1,18 +1,16 @@
 package main
 
 // #include "heatmap.h"
-// #cgo CFLAGS: -fPIC -I. -O3 -g -DNDEBUG -fopenmp -pedantic
-// #cgo LDFLAGS: -O3 -lm -L/usr/local/Cellar/libiomp/20150401/lib -liomp5
 import "C"
 
 import (
 	"fmt"
-	"log"
 	"image"
 	"image/color"
+	"io"
+	"log"
 	"math"
 	"os"
-	"io"
 )
 
 type Tile struct {
@@ -49,7 +47,7 @@ func (t *Tile) PixelPos(p Point, size float64) (np Point) {
 }
 
 // Get a the tile for the given level and point. Returns nil if it couldn't be found.
-func (t * Tile) GetTile(p Point, level uint) (*Tile) {
+func (t *Tile) GetTile(p Point, level uint) *Tile {
 	if t == nil || t.Level == level {
 		return t
 	} else {
@@ -129,7 +127,7 @@ func (t *Tile) AddPoint(p Point) {
 }
 
 // Outputs its points into the given channel. Recurses into children.
-func (t *Tile) GetPoints(output chan <- Point){
+func (t *Tile) GetPoints(output chan<- Point) {
 	if t.Level == level_depth {
 		for _, point := range t.Points {
 			output <- point
@@ -149,24 +147,24 @@ func (t *Tile) GetPoints(output chan <- Point){
 func (t *Tile) RenderHeatmapToFile(heat *C.struct___0, size float64, output io.Writer) {
 	// Number of colours to generate for the colour scheme.
 	numColors := 256
-	
-	colorMap := make([]uint8, numColors * 4, numColors * 4)
+
+	colorMap := make([]uint8, numColors*4, numColors*4)
 	// FlightAware colours
 	startColor := color.RGBA{0, 0x2F, 0x5D, 64}
 	endColor := color.RGBA{0, 0xA0, 0xE2, 192}
-	
+
 	// Figure out how much to increment each channel by on each iteration.
 	rIncr := (float64(endColor.R) - float64(startColor.R)) / float64(numColors)
 	gIncr := (float64(endColor.G) - float64(startColor.G)) / float64(numColors)
 	bIncr := (float64(endColor.B) - float64(startColor.B)) / float64(numColors)
 	aIncr := (float64(endColor.A) - float64(startColor.A)) / float64(numColors)
-	
+
 	// Generate the map
 	for i := 1; i < int(numColors); i++ {
-		colorMap[4*i+0] = uint8(float64(startColor.R) + rIncr * float64(i))
-		colorMap[4*i+1] = uint8(float64(startColor.G) + gIncr * float64(i))
-		colorMap[4*i+2] = uint8(float64(startColor.B) + bIncr * float64(i))
-		colorMap[4*i+3] = uint8(float64(startColor.A) + aIncr * float64(i))
+		colorMap[4*i+0] = uint8(float64(startColor.R) + rIncr*float64(i))
+		colorMap[4*i+1] = uint8(float64(startColor.G) + gIncr*float64(i))
+		colorMap[4*i+2] = uint8(float64(startColor.B) + bIncr*float64(i))
+		colorMap[4*i+3] = uint8(float64(startColor.A) + aIncr*float64(i))
 	}
 
 	// Build a C colorscheme out of it.
@@ -174,14 +172,14 @@ func (t *Tile) RenderHeatmapToFile(heat *C.struct___0, size float64, output io.W
 
 	// Allocate an image buffer.
 	heatImg := image.NewNRGBA(image.Rect(0, 0, int(size), int(size)))
-	
+
 	// Change the saturation based on the zoom, for aesthetics.
 	saturationZoomFactor := (1.0 - 1/(math.Pow(2, float64(t.Level))))
 	if t.Level == 0 {
-		saturationZoomFactor = 0.9	
+		saturationZoomFactor = 0.9
 	}
 	saturation := C.float(5.0 * saturationZoomFactor)
-	
+
 	// Render the heatmap to the image buffer.
 	C.heatmap_render_saturated_to(heat, colorScheme, saturation, (*C.uchar)(&heatImg.Pix[0]))
 	// Deallocate the heatmap and color scheme.
@@ -197,7 +195,7 @@ func (t *Tile) RenderHeatmapToFile(heat *C.struct___0, size float64, output io.W
 }
 
 // Adds the tile's points to the given heatmap. If the given heatmap pointer is nil, one is created and returned.
-func (t *Tile) AddPointsToHeatmap(heat *C.struct___0, size float64) (*C.struct___0) {
+func (t *Tile) AddPointsToHeatmap(heat *C.struct___0, size float64) *C.struct___0 {
 	if t == nil {
 		return nil
 	}
@@ -223,7 +221,7 @@ func (t *Tile) AddPointsToHeatmap(heat *C.struct___0, size float64) (*C.struct__
 		// Get the points and have them sent to a buffered channel
 		pointChan := make(chan Point, 100)
 		// Fetch them in a goroutine so we can fetch them and add them at the same time.
-		go func(tile *Tile, output chan <- Point){
+		go func(tile *Tile, output chan<- Point) {
 			tile.GetPoints(pointChan)
 			close(pointChan)
 		}(t, pointChan)
